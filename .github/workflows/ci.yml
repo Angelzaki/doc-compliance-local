@@ -25,6 +25,24 @@ jobs:
         run: python -m doc_compliance compare --no-store --out results
       - name: Experimento docs_ok_es vs docs_gap_es
         run: python -m doc_compliance compare --es --no-store --out results_es
+      - name: Check ES ok + llm-ci-gates (PASS)
+        if: matrix.python-version == '3.12'
+        run: |
+          pip install "git+https://github.com/Angelzaki/llm-ci-gates.git"
+          python -m doc_compliance check --es --no-store --out results_gate_ok
+          python -m llm_ci_gates --metrics results_gate_ok/compliance_report.json --thresholds ci/thresholds_compliance.yaml
+      - name: Check ES gap + llm-ci-gates (debe exit 2)
+        if: matrix.python-version == '3.12'
+        run: |
+          python -m doc_compliance check --es --gap --no-store --out results_gate_gap
+          set +e
+          python -m llm_ci_gates --metrics results_gate_gap/compliance_report.json --thresholds ci/thresholds_compliance.yaml
+          code=$?
+          set -e
+          if [ "$code" -ne 2 ]; then
+            echo "Se esperaba exit 2, obtuvo $code"
+            exit 1
+          fi
 
   docker:
     runs-on: ubuntu-latest
