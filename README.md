@@ -8,6 +8,9 @@
 
 ![CI](https://github.com/Angelzaki/doc-compliance-local/actions/workflows/ci.yml/badge.svg)
 
+<br/>
+<img src="docs/diagram.jpg" alt="Problema → Solución → Resultado" width="100%"/>
+
 </div>
 
 ---
