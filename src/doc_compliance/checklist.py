@@ -19,6 +19,10 @@ def default_checklist_path() -> Path:
     return samples_dir() / "checklist" / "security_baseline.json"
 
 
+def spanish_checklist_path() -> Path:
+    return samples_dir() / "checklist" / "linea_base_seguridad.json"
+
+
 def parse_checklist(data: dict[str, Any], source: str = "") -> Checklist:
     raw_reqs = data.get("requirements")
     if not isinstance(raw_reqs, list) or not raw_reqs:

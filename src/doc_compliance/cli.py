@@ -11,6 +11,7 @@ from doc_compliance.checklist import (
     default_checklist_path,
     load_checklist,
     samples_dir,
+    spanish_checklist_path,
 )
 from doc_compliance.corpus import CorpusError, load_documents
 from doc_compliance.models import ComplianceRun
@@ -30,8 +31,12 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command")
 
     check = sub.add_parser("check", help="evalua documentos contra un checklist")
-    check.add_argument("--checklist", default=str(default_checklist_path()))
-    check.add_argument("--docs", default=str(samples_dir() / "docs_ok"))
+    check.add_argument("--checklist", default=None)
+    check.add_argument("--docs", default=None)
+    check.add_argument("--es", action="store_true",
+                       help="checklist y corpus de muestra en espanol (docs_ok_es por defecto)")
+    check.add_argument("--gap", action="store_true",
+                       help="usa el corpus de muestra con brechas en lugar del conforme")
     check.add_argument("--out", default="results")
     check.add_argument("--html", action="store_true", help="genera tambien compliance_report.html")
     check.add_argument("--label", default="")
@@ -41,9 +46,11 @@ def build_parser() -> argparse.ArgumentParser:
     check.add_argument("--fail-under", type=float, default=None, help="exit 1 si el puntaje es menor")
 
     compare = sub.add_parser("compare", help="compara docs_ok vs docs_gap")
-    compare.add_argument("--checklist", default=str(default_checklist_path()))
-    compare.add_argument("--ok", default=str(samples_dir() / "docs_ok"))
-    compare.add_argument("--gap", default=str(samples_dir() / "docs_gap"))
+    compare.add_argument("--checklist", default=None)
+    compare.add_argument("--ok", default=None)
+    compare.add_argument("--gap", default=None)
+    compare.add_argument("--es", action="store_true",
+                         help="checklist y corpus de muestra en espanol (docs_ok_es vs docs_gap_es)")
     compare.add_argument("--out", default="results")
     compare.add_argument("--db", default=None)
     compare.add_argument("--no-store", action="store_true")
@@ -81,9 +88,16 @@ def format_summary(run: ComplianceRun) -> str:
     return "\n".join(lines)
 
 
+def _sample_paths(es: bool) -> tuple[Path, Path, Path]:
+    if es:
+        return spanish_checklist_path(), samples_dir() / "docs_ok_es", samples_dir() / "docs_gap_es"
+    return default_checklist_path(), samples_dir() / "docs_ok", samples_dir() / "docs_gap"
+
+
 def cmd_check(args: argparse.Namespace) -> int:
-    checklist = load_checklist(args.checklist)
-    docs = load_documents(args.docs)
+    base_checklist, base_ok, base_gap = _sample_paths(args.es)
+    checklist = load_checklist(args.checklist or base_checklist)
+    docs = load_documents(args.docs or (base_gap if args.gap else base_ok))
     run = run_check(checklist, docs, max_evidence=args.max_evidence, label=args.label)
     paths = write_reports(run, args.out, with_html=args.html)
     print(format_summary(run))
@@ -99,9 +113,11 @@ def cmd_check(args: argparse.Namespace) -> int:
 
 
 def cmd_compare(args: argparse.Namespace) -> int:
-    checklist = load_checklist(args.checklist)
-    ok = run_check(checklist, load_documents(args.ok), label="compare:ok")
-    gap = run_check(checklist, load_documents(args.gap), label="compare:gap")
+    base_checklist, base_ok, base_gap = _sample_paths(args.es)
+    checklist = load_checklist(args.checklist or base_checklist)
+    suffix = ":es" if args.es else ""
+    ok = run_check(checklist, load_documents(args.ok or base_ok), label=f"compare:ok{suffix}")
+    gap = run_check(checklist, load_documents(args.gap or base_gap), label=f"compare:gap{suffix}")
     print(f"{'ID':<8}{'OK':<9}{'GAP':<9}Requisito")
     for r_ok, r_gap in zip(ok.results, gap.results):
         print(f"{r_ok.requirement.id:<8}{r_ok.status.upper():<9}{r_gap.status.upper():<9}"

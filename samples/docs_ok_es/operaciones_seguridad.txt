@@ -1,0 +1,26 @@
+PROCEDIMIENTO DE OPERACIONES DE SEGURIDAD
+Versión 3.0 - Responsable: Jefatura de Operaciones
+
+1. Registro y monitoreo
+El registro centralizado de eventos se realiza en un SIEM.
+La retención de registros es de 12 meses y los registros de auditoría no pueden modificarse.
+El monitoreo corre 24x7 y las alertas críticas llegan al equipo de guardia.
+Todos los servidores usan sincronización horaria con NTP.
+
+2. Respuesta a incidentes
+El plan de respuesta a incidentes designa un responsable de incidentes y un equipo de respuesta.
+Los incidentes con datos personales se notifican a la autoridad dentro de 72 horas.
+El escalamiento sigue la matriz de contactos publicada en la intranet.
+Cada incidente cierra con una revisión posterior y se documentan las lecciones aprendidas.
+Se realiza un simulacro cada año.
+
+3. Respaldos y recuperación
+Se ejecuta una copia de seguridad diaria de los sistemas críticos.
+Cada trimestre se hace una prueba de restauración y se registra el resultado.
+El plan de recuperación ante desastres fija un RTO de 4 horas y un RPO de 24 horas.
+Una copia inmutable se guarda fuera del sitio.
+
+4. Vulnerabilidades
+Se ejecuta un escaneo de vulnerabilidades cada semana.
+Los parches críticos se aplican en un máximo de 7 días dentro de la gestión de parches.
+La remediación se prioriza por CVSS y se contrata una prueba de penetración cada año.

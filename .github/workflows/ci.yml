@@ -23,6 +23,8 @@ jobs:
         run: pytest -q
       - name: Experimento docs_ok vs docs_gap
         run: python -m doc_compliance compare --no-store --out results
+      - name: Experimento docs_ok_es vs docs_gap_es
+        run: python -m doc_compliance compare --es --no-store --out results_es
 
   docker:
     runs-on: ubuntu-latest

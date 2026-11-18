@@ -1,0 +1,7 @@
+NOTAS DE ACCESOS (BORRADOR)
+
+Cada persona tiene acceso a los sistemas de su equipo.
+El control de acceso lo maneja el helpdesk por correo.
+Las cuentas privilegiadas se comparten dentro del equipo de infraestructura por comodidad.
+No exigimos autenticación multifactor para el personal, solo contraseña.
+Las contraseñas deben tener al menos 8 caracteres y se cambian cuando alguien se acuerda.

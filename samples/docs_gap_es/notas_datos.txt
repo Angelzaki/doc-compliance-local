@@ -1,0 +1,7 @@
+NOTAS DE DATOS (BORRADOR)
+
+El sitio web público usa HTTPS.
+Los servicios internos se comunican por HTTP porque es más rápido.
+No aplicamos cifrado en reposo en las bases de datos, es un costo adicional.
+Los certificados los renueva quien se acuerde.
+No contamos con un plan de respuesta a incidentes; si pasa algo se avisa por el chat.

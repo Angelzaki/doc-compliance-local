@@ -1,0 +1,12 @@
+POLÍTICA DE PROTECCIÓN DE DATOS
+Versión 1.8 - Responsable: Oficial de Seguridad
+
+1. Cifrado en tránsito
+Todos los datos de clientes viajan con cifrado en tránsito mediante TLS 1.2 o TLS 1.3.
+Los sitios públicos usan HTTPS con certificados emitidos por una autoridad reconocida.
+La conexión entre las oficinas y la nube se establece por VPN.
+
+2. Cifrado en reposo
+Los datos almacenados usan cifrado en reposo con AES-256 en bases de datos y discos.
+La gestión de claves se realiza en un KMS y la rotación de claves es anual.
+El cifrado de disco es obligatorio en todos los equipos portátiles.

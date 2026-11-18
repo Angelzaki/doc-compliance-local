@@ -1,0 +1,23 @@
+POLÍTICA DE CONTROL DE ACCESOS
+Versión 2.1 - Responsable: Jefatura de Seguridad de la Información
+
+1. Principios
+El control de acceso de Andes Soluciones se rige por el principio de mínimo privilegio: cada colaborador recibe solo los permisos que su puesto necesita.
+Los permisos se otorgan mediante perfiles de acceso basados en roles, con control de acceso basado en roles (RBAC) definido en el proveedor de identidad.
+Las cuentas privilegiadas se limitan al equipo de infraestructura y se revisan cada mes.
+
+2. Revisión de accesos
+Cada jefatura ejecuta una revisión de accesos trimestral sobre los permisos de sus aplicaciones.
+Los revisores deben certificar o revocar cada permiso en un plazo de diez días hábiles.
+La baja de usuarios que se desvinculan se completa en 24 horas desde el ticket de desvinculación.
+
+3. Autenticación
+Se exige autenticación multifactor para todo acceso remoto, para el acceso administrativo y para las consolas de nube.
+El personal usa una aplicación autenticadora o una llave de seguridad; los códigos por SMS se aceptan solo como alternativa de emergencia.
+El inicio de sesión único (SSO) es la entrada por defecto a las aplicaciones internas.
+
+4. Contraseñas
+Las contraseñas exigen una longitud mínima de 14 caracteres y se comparan contra listas de claves filtradas.
+Se bloquea la reutilización de las últimas 12 contraseñas y la cuenta entra en bloqueo tras 5 intentos fallidos.
+La caducidad solo se aplica ante sospecha de compromiso.
+Cada colaborador recibe un gestor de contraseñas corporativo.

@@ -1,0 +1,15 @@
+NORMAS DE GOBIERNO DE SEGURIDAD
+Versión 1.4 - Responsable: Comité de Seguridad
+
+1. Gestión de cambios
+Todo cambio en producción requiere una solicitud de cambio registrada en un ticket.
+La revisión por pares y la aprobación de cambios están a cargo del comité de cambios.
+Los cambios se validan en preproducción y cada uno incluye un plan de reversión.
+
+2. Proveedores
+Antes de contratar se realiza una evaluación de proveedores con revisión anual.
+Los proveedores que tratan datos firman un anexo de seguridad y se solicita su informe SOC 2 o ISO 27001.
+
+3. Capacitación
+La capacitación en seguridad es obligatoria en la inducción del personal nuevo y se repite anualmente.
+Incluye simulacros de phishing y se reporta la tasa de finalización por área.

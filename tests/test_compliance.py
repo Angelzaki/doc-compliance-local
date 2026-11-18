@@ -8,6 +8,7 @@ from doc_compliance.checklist import (
     load_checklist,
     parse_checklist,
     samples_dir,
+    spanish_checklist_path,
 )
 from doc_compliance.cli import main
 from doc_compliance.corpus import load_documents
@@ -239,3 +240,128 @@ def test_web_health_and_console(tmp_path, monkeypatch):
     assert res.status_code == 200 and res.json()["critical_gaps"]
     assert client.post("/api/check", json={"mode": "paths"}).status_code == 400
     assert len(client.get("/api/history").json()) == 1
+
+
+@pytest.fixture(scope="module")
+def checklist_es():
+    return load_checklist(spanish_checklist_path())
+
+
+@pytest.fixture(scope="module")
+def run_ok_es(checklist_es):
+    return run_check(checklist_es, load_documents(samples_dir() / "docs_ok_es"))
+
+
+@pytest.fixture(scope="module")
+def run_gap_es(checklist_es):
+    return run_check(checklist_es, load_documents(samples_dir() / "docs_gap_es"))
+
+
+def _negated(text: str, term: str) -> bool:
+    folded = fold(text)
+    start = compile_term(term).find(folded)[0][0]
+    return is_negated(folded, 0, start)
+
+
+@pytest.mark.parametrize("text", [
+    "No exigimos autenticación multifactor para el personal",
+    "No aplicamos cifrado en reposo en las bases de datos",
+    "No contamos con un plan de respuesta a incidentes",
+    "Hoy no se cuenta con un plan de respuesta a incidentes",
+    "Carecemos de un plan de respuesta a incidentes",
+    "Nunca hemos hecho una prueba de restauración",
+    "Sin autenticación multifactor en el acceso remoto",
+])
+def test_spanish_negation_detected(text):
+    term = next(t for t in (
+        "autenticacion multifactor", "cifrado en reposo",
+        "plan de respuesta a incidentes", "prueba de restauracion",
+    ) if t in fold(text))
+    assert _negated(text, term)
+
+
+@pytest.mark.parametrize("text", [
+    "Se exige autenticación multifactor para todo acceso remoto",
+    "No se deben compartir los códigos de autenticación multifactor",
+    "Se aplica cifrado en reposo, no hay excepciones",
+    "Contamos con un plan de respuesta a incidentes",
+])
+def test_spanish_affirmative_or_prohibition_not_negated(text):
+    term = next(t for t in (
+        "autenticacion multifactor", "cifrado en reposo", "plan de respuesta a incidentes",
+    ) if t in fold(text))
+    assert not _negated(text, term)
+
+
+def test_english_negation_window_unchanged():
+    assert not _negated("We have an incident response plan that is tested", "incident response plan")
+    assert _negated("We do not have an incident response plan", "incident response plan")
+
+
+def test_spanish_checklist_loads(checklist_es):
+    assert len(checklist_es.requirements) == 12
+    assert [r.id for r in checklist_es.requirements] == [f"ES-{i:02d}" for i in range(1, 13)]
+    critical = {r.id for r in checklist_es.requirements if r.critical}
+    assert critical == {"ES-01", "ES-02", "ES-04", "ES-05", "ES-07", "ES-08"}
+    assert all(r.keywords and r.must_have for r in checklist_es.requirements)
+
+
+def test_docs_ok_es_complies(run_ok_es):
+    assert run_ok_es.overall_pct >= 90
+    assert run_ok_es.counts[FAIL] == 0
+    assert run_ok_es.critical_gaps == []
+    assert run_ok_es.verdict == "compliant"
+
+
+def test_docs_gap_es_has_critical_gaps_including_mfa(run_gap_es, run_ok_es):
+    assert run_gap_es.overall_pct < 20
+    assert run_gap_es.verdict == "non_compliant"
+    assert "ES-02" in run_gap_es.critical_gaps
+    assert {"ES-01", "ES-04", "ES-05", "ES-07", "ES-08"} <= set(run_gap_es.critical_gaps)
+    assert run_ok_es.overall_pct - run_gap_es.overall_pct > 70
+
+
+def test_spanish_negations_become_counter_evidence(run_gap_es):
+    mfa = run_gap_es.result_for("ES-02")
+    assert mfa.status == FAIL and mfa.score == 0
+    assert mfa.negated_must_have
+    assert any(ev.negated and "No exigimos" in ev.quote for ev in mfa.evidence)
+    assert run_gap_es.result_for("ES-07").negated_must_have
+    assert run_gap_es.result_for("ES-05").negated_must_have
+
+
+def test_spanish_evidence_citations_point_to_real_text(run_ok_es):
+    docs = {d.name: d.text for d in load_documents(samples_dir() / "docs_ok_es")}
+    for res in run_ok_es.results:
+        assert res.evidence, res.requirement.id
+        for ev in res.evidence:
+            assert docs[ev.doc][ev.start:ev.end].startswith(ev.quote.rstrip("."))
+
+
+def test_sentence_split_after_accented_capital():
+    text = "Primera regla. Áreas críticas aplican. Ñandú cierra."
+    assert len(split_sentences(text)) == 3
+
+
+def test_cli_compare_es(tmp_path, capsys):
+    out = tmp_path / "es"
+    assert main(["compare", "--es", "--out", str(out)]) == 0
+    text = capsys.readouterr().out
+    assert "ES-02" in text and "docs_gap" in text
+    data = json.loads((out / "compare.json").read_text(encoding="utf-8"))
+    assert data["gap"]["checklist"]["name"].startswith("Línea base")
+    assert data["ok"]["overall_pct"] - data["gap"]["overall_pct"] > 70
+
+
+def test_cli_check_es(tmp_path, capsys):
+    out = tmp_path / "es_check"
+    assert main(["check", "--es", "--out", str(out), "--fail-under", "80"]) == 0
+    assert "Brechas criticas: ninguna" in capsys.readouterr().out
+    assert main(["check", "--es", "--gap", "--out", str(out), "--fail-under", "80"]) == 1
+    assert "ES-02" in capsys.readouterr().out
+
+
+def test_experiment_reference_scores_es(run_ok_es, run_gap_es):
+    assert round(run_ok_es.overall_pct, 1) == 100.0
+    assert round(run_gap_es.overall_pct, 1) == 8.8
+    assert run_gap_es.critical_gaps == ["ES-01", "ES-02", "ES-04", "ES-05", "ES-07", "ES-08"]

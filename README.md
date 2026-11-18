@@ -67,6 +67,27 @@ Salida: `results/compliance_report.md`, `results/compliance_report.json`, `resul
 
 ---
 
+### `$ cat checklist_es.md`
+
+Línea base de seguridad en español: 12 requisitos (`ES-01` a `ES-12`, 6 críticos) en `samples/checklist/linea_base_seguridad.json`, con corpus `samples/docs_ok_es` y `samples/docs_gap_es`.
+
+```bash
+python -m doc_compliance compare --es
+python -m doc_compliance check --es              # docs_ok_es
+python -m doc_compliance check --es --gap        # docs_gap_es
+```
+
+`--es` apunta al checklist y los corpus en español; `--docs`, `--checklist`, `--ok` y `--gap` siguen funcionando para rutas propias.
+
+| Corpus | Puntaje | Veredicto | pass / partial / fail | Brechas críticas |
+|---|---|---|---|---|
+| `docs_ok_es` | 100.0% | Cumple | 12 / 0 / 0 | 0 |
+| `docs_gap_es` | 8.8% | No cumple | 0 / 0 / 12 | 6 (ES-01, 02, 04, 05, 07, 08) |
+
+La negación en español ("no exigimos", "no aplicamos", "no contamos con", "carecemos de", "nunca") cuenta como contra-evidencia. Detalle en [docs/EXPERIMENT.md](docs/EXPERIMENT.md).
+
+---
+
 ### `$ docker compose up`
 
 ```bash
@@ -132,7 +153,7 @@ API: `POST /api/check`, `GET /api/history`, `GET /api/history/{id}`, `GET /api/h
 
 ```
 src/doc_compliance/   checklist · corpus · evidence · scorer · report · store · cli · web
-samples/              checklist y corpus docs_ok / docs_gap
+samples/              checklists y corpus docs_ok / docs_gap (+ _es)
 tests/                pytest
 docs/                 architecture · EXPERIMENT · CONCLUSIONS
 Dockerfile · docker-compose.yml · .github/workflows/ci.yml

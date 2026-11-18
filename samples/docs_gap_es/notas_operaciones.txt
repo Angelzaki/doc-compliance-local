@@ -1,0 +1,7 @@
+NOTAS DE OPERACIONES (BORRADOR)
+
+Los respaldos se hacen cuando alguien se acuerda y se guardan en el mismo servidor.
+Hacemos un escaneo de vulnerabilidades de vez en cuando, cuando sale una noticia grave.
+El monitoreo lo hace quien esté de turno, con alertas al celular.
+Los cambios se piden por ticket y se suben al servidor directamente.
+Los proveedores nos mandan lo que necesitamos y no hay contrato de seguridad.
