@@ -1,0 +1,22 @@
+ACCESS CONTROL POLICY
+Version 3.2 - Owner: Head of Security
+
+1. Access control principles
+Access control at Northwind follows the principle of least privilege, so every employee receives only the permissions needed for their role.
+Permissions are granted through role-based access (RBAC) groups defined in the identity provider.
+Privileged accounts are limited to the infrastructure team and are reviewed monthly.
+
+2. Access reviews
+Managers perform a quarterly access review of all application entitlements.
+Reviewers must certify or revoke each entitlement within ten business days.
+Deprovisioning of leavers is completed within 24 hours of the offboarding ticket.
+
+3. Authentication
+Multi-factor authentication is enforced for all remote access, administrative access and cloud consoles.
+Staff use an authenticator app or a hardware security key; SMS codes are accepted only as a fallback.
+Single sign-on (SSO) is the default entry point for internal applications.
+
+4. Passwords
+Passwords require a minimum length of 14 characters and are checked against known breached lists.
+Password reuse across the last 12 passwords is blocked, and accounts enter lockout after 5 failed attempts.
+A company password manager is provided to every employee.

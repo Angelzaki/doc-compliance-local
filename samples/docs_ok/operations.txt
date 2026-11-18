@@ -1,0 +1,20 @@
+SECURITY OPERATIONS HANDBOOK
+
+Logging and monitoring
+Centralized logging collects application, system and network events in a SIEM.
+Audit logs are protected from tampering, and log retention is set to 13 months.
+Alerts for suspicious activity page the on-call engineer through the monitoring platform, and servers use NTP for time synchronization.
+
+Incident response
+The Incident Response Plan defines severity levels, escalation paths and the incident commander role.
+Customers and regulators are notified within 72 hours of a confirmed personal data breach.
+The response team runs a tabletop exercise twice a year and a post-incident review follows every major event.
+
+Backup and recovery
+Daily backups are stored offsite in immutable storage.
+A restore test is executed every quarter and the disaster recovery plan sets an RTO of 4 hours and an RPO of 1 hour.
+
+Vulnerability management
+Weekly vulnerability scans cover all internet-facing systems.
+Critical vulnerabilities must be fixed within 7 days, and critical patches follow the patch management procedure.
+An external penetration test is performed annually and findings are ranked by CVSS score with tracked remediation.

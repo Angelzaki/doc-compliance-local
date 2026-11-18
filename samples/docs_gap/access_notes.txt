@@ -1,0 +1,7 @@
+ACCESS NOTES (DRAFT)
+
+Employees get access to the systems their team uses.
+Access control is handled by the IT helpdesk through email requests.
+Privileged accounts are shared inside the infrastructure team for convenience.
+We do not enforce multi-factor authentication for staff, only a password.
+Passwords must be at least 8 characters long and are changed when someone remembers.

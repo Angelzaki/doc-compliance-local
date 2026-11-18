@@ -1,0 +1,16 @@
+DATA PROTECTION STANDARD
+
+Encryption in transit
+All customer traffic is encrypted in transit using TLS 1.2 or TLS 1.3, and HTTPS is mandatory on every public endpoint.
+Certificates are issued by an internal certificate authority and renewed 30 days before expiry.
+Administrators reach internal networks only through a corporate VPN.
+
+Encryption at rest
+Databases, object storage and laptops use encryption at rest with AES-256.
+Keys are held in a managed KMS, and key rotation happens every 12 months.
+Full disk encryption is mandatory on all employee laptops.
+
+Retention and disposal
+Each data category has a documented retention schedule approved by Legal.
+Obsolete records are removed through secure deletion, and storage media follow secure disposal procedures with a certificate of destruction.
+Personal data is deleted when the retention period ends unless a legal hold applies.

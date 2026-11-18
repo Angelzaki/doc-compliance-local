@@ -1,0 +1,146 @@
+{
+  "name": "Security Baseline",
+  "version": "1.0",
+  "requirements": [
+    {
+      "id": "SEC-01",
+      "title": "Least privilege and periodic access reviews",
+      "category": "Access",
+      "description": "Access is granted by role and reviewed on a fixed cadence.",
+      "critical": true,
+      "weight": 3,
+      "keywords": ["role-based access|rbac", "access control", "quarterly", "privileged accounts", "deprovision|offboarding"],
+      "must_have": ["least privilege", "access review|access recertification"]
+    },
+    {
+      "id": "SEC-02",
+      "title": "Multi-factor authentication",
+      "category": "Access",
+      "description": "MFA protects remote and administrative access.",
+      "critical": true,
+      "weight": 3,
+      "keywords": ["authenticator", "hardware token|security key|totp", "single sign-on|sso"],
+      "must_have": ["multi-factor authentication|mfa|two-factor authentication", "all remote access|administrative access|cloud console"]
+    },
+    {
+      "id": "SEC-03",
+      "title": "Password policy",
+      "category": "Access",
+      "description": "Minimum length, reuse control, lockout and a password manager.",
+      "critical": false,
+      "weight": 2,
+      "keywords": ["password", "reuse", "rotation|expire", "password manager", "lockout"],
+      "must_have": ["minimum length|at least 12 characters|12 characters"]
+    },
+    {
+      "id": "SEC-04",
+      "title": "Encryption in transit",
+      "category": "Data protection",
+      "description": "Modern TLS on all network paths that carry customer data.",
+      "critical": true,
+      "weight": 3,
+      "keywords": ["https", "certificate", "vpn"],
+      "must_have": ["tls 1.2|tls 1.3", "encrypted in transit|encryption in transit"]
+    },
+    {
+      "id": "SEC-05",
+      "title": "Encryption at rest and key management",
+      "category": "Data protection",
+      "description": "Strong encryption for stored data with managed keys.",
+      "critical": true,
+      "weight": 3,
+      "keywords": ["key management|kms", "disk encryption|database encryption", "key rotation"],
+      "must_have": ["aes-256", "encryption at rest|encrypted at rest"]
+    },
+    {
+      "id": "SEC-06",
+      "title": "Centralized logging and monitoring",
+      "category": "Operations",
+      "description": "Security events are collected, retained and alerted on.",
+      "critical": false,
+      "weight": 2,
+      "keywords": ["audit logs|audit trail", "alerts", "monitoring", "time synchronization|ntp"],
+      "must_have": ["centralized logging|log aggregation|siem", "log retention|logs are retained"]
+    },
+    {
+      "id": "SEC-07",
+      "title": "Incident response plan",
+      "category": "Operations",
+      "description": "A documented plan with roles, escalation and notification deadlines.",
+      "critical": true,
+      "weight": 3,
+      "keywords": ["incident commander|response team", "post-incident review|lessons learned", "tabletop|exercise", "escalation"],
+      "must_have": ["incident response plan", "72 hours"]
+    },
+    {
+      "id": "SEC-08",
+      "title": "Backups and disaster recovery",
+      "category": "Operations",
+      "description": "Regular backups with tested restores and defined recovery objectives.",
+      "critical": true,
+      "weight": 2,
+      "keywords": ["disaster recovery", "rto|recovery time objective", "rpo|recovery point objective", "offsite|off-site|immutable"],
+      "must_have": ["daily backup", "restore test|restoration test|recovery test"]
+    },
+    {
+      "id": "SEC-09",
+      "title": "Vulnerability and patch management",
+      "category": "Operations",
+      "description": "Scanning cadence and remediation of critical findings.",
+      "critical": false,
+      "weight": 2,
+      "keywords": ["patch management|patching", "penetration test|pentest", "cvss", "remediation"],
+      "must_have": ["vulnerability scan", "critical patches|critical vulnerabilities"]
+    },
+    {
+      "id": "SEC-10",
+      "title": "Change management",
+      "category": "Governance",
+      "description": "Approved, reviewed and reversible production changes.",
+      "critical": false,
+      "weight": 1,
+      "keywords": ["peer review|code review", "change request", "staging", "ticket"],
+      "must_have": ["change approval|approved changes|change advisory board", "rollback"]
+    },
+    {
+      "id": "SEC-11",
+      "title": "Third-party and vendor risk",
+      "category": "Governance",
+      "description": "Vendors are assessed and bound by contract.",
+      "critical": false,
+      "weight": 2,
+      "keywords": ["soc 2|iso 27001", "annual review|annually", "subprocessor|vendors"],
+      "must_have": ["vendor risk assessment|third-party risk assessment|supplier assessment", "data processing agreement|security addendum"]
+    },
+    {
+      "id": "SEC-12",
+      "title": "Data retention and disposal",
+      "category": "Data protection",
+      "description": "Retention periods and verifiable destruction.",
+      "critical": false,
+      "weight": 1,
+      "keywords": ["legal hold", "personal data", "delete|deleted", "certificate of destruction"],
+      "must_have": ["retention schedule|retention period", "secure deletion|secure disposal|data destruction"]
+    },
+    {
+      "id": "SEC-13",
+      "title": "Security awareness training",
+      "category": "Governance",
+      "description": "Training at onboarding and on a recurring basis.",
+      "critical": false,
+      "weight": 1,
+      "keywords": ["annual|annually", "phishing", "simulation", "completion rate|completion"],
+      "must_have": ["security awareness training", "onboarding|new hires"]
+    },
+    {
+      "id": "SEC-14",
+      "title": "Asset inventory",
+      "category": "Governance",
+      "description": "Assets are inventoried, classified and owned.",
+      "critical": false,
+      "weight": 1,
+      "keywords": ["cmdb", "classification|classified", "lifecycle", "hardware", "software"],
+      "must_have": ["asset inventory", "asset owner"]
+    }
+  ]
+}

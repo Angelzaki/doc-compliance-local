@@ -1,0 +1,18 @@
+GOVERNANCE AND RISK MANAGEMENT
+
+Change management
+Every production change requires change approval after a peer review recorded in a change request ticket.
+Changes are tested in staging first, and each release includes a rollback plan.
+
+Vendor management
+Procurement runs a vendor risk assessment before onboarding any supplier that handles customer data.
+Each vendor signs a data processing agreement, and SOC 2 or ISO 27001 reports are collected and reviewed annually.
+Subprocessors are listed in the vendor register.
+
+Security awareness
+All staff complete security awareness training during onboarding and every year after that.
+Quarterly phishing simulation campaigns measure click rates, and the completion rate is reported to management.
+
+Asset management
+The security team maintains an asset inventory of hardware and software in the CMDB.
+Assets receive a classification label and lifecycle tracking from purchase to disposal.

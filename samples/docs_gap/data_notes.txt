@@ -1,0 +1,6 @@
+DATA NOTES (DRAFT)
+
+Customer traffic to the website is encrypted in transit and HTTPS is available on the public site.
+Internal services still use plain HTTP in some cases, and certificates are renewed by whoever notices the expiry.
+Production databases sit on shared storage in the main office.
+Data is kept as long as it may be useful, and old exports are deleted when disk space runs low.

@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>doc-compliance-local</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f6f7f9; font-family: system-ui, sans-serif; }
+    .card { border-radius: .6rem; }
+    .st-pass { color: #198754; font-weight: 600; }
+    .st-partial { color: #b58100; font-weight: 600; }
+    .st-fail { color: #dc3545; font-weight: 600; }
+    .quote { border-left: 3px solid #adb5bd; padding-left: .6rem; margin-bottom: .5rem; font-size: .88rem; }
+    .quote.neg { border-color: #dc3545; color: #842029; }
+    .cell { text-align: center; min-width: 5rem; }
+    .cell.hit { background: #d1e7dd; }
+    .cell.none { background: #f8d7da; }
+    tr.req-row { cursor: pointer; }
+    code { font-size: .8rem; }
+    footer { font-size: .8rem; color: #6c757d; }
+    table { background: #fff; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-baseline mb-3">
+    <h1 class="h3 mb-0">doc-compliance-local</h1>
+    <span class="text-muted">checklist &rarr; evidencia citada &rarr; brechas</span>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label" for="mode">Fuente</label>
+          <select id="mode" class="form-select">
+            <option value="samples_ok">Samples: docs_ok</option>
+            <option value="samples_gap">Samples: docs_gap</option>
+            <option value="paths">Rutas locales</option>
+            <option value="upload">Subir archivos</option>
+          </select>
+        </div>
+        <div class="col-md-9" id="box-paths" style="display:none">
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="form-label" for="checklistPath">Checklist (JSON)</label>
+              <input id="checklistPath" class="form-control" placeholder="ruta al checklist">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="docsPath">Documentos (carpeta o archivo)</label>
+              <input id="docsPath" class="form-control" placeholder="ruta a .txt / .md">
+            </div>
+          </div>
+        </div>
+        <div class="col-md-9" id="box-upload" style="display:none">
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="form-label" for="checklistFile">Checklist (JSON, opcional)</label>
+              <input id="checklistFile" type="file" class="form-control" accept=".json">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="docFiles">Documentos (.txt / .md)</label>
+              <input id="docFiles" type="file" class="form-control" accept=".txt,.md" multiple>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3 d-flex gap-2 align-items-center">
+        <button id="run" class="btn btn-primary">Evaluar</button>
+        <button id="compare" class="btn btn-outline-secondary">Comparar ok vs gap</button>
+        <span id="msg" class="text-danger"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="result" class="hidden">
+    <div class="row g-3 mb-3" id="summary"></div>
+    <div class="card mb-4">
+      <div class="card-header">Matriz requisito &times; documento (clic para ver evidencia)</div>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered mb-0 align-middle" id="matrix"></table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between">
+      <span>Historial</span>
+      <button id="refresh" class="btn btn-sm btn-outline-secondary">Actualizar</button>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0" id="history"></table>
+    </div>
+  </div>
+
+  <footer class="text-center">Hecho en Lima &middot; Angel Salazar &middot; CIP 404730</footer>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const VERDICT = { compliant: "Cumple", needs_work: "Requiere trabajo", non_compliant: "No cumple" };
+
+async function api(path, body) {
+  const res = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : undefined);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || res.statusText);
+  return data;
+}
+
+function readFile(file) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(fr.result);
+    fr.onerror = reject;
+    fr.readAsText(file);
+  });
+}
+
+async function buildRequest() {
+  const mode = $("mode").value;
+  const req = { mode };
+  if (mode === "paths") {
+    if ($("checklistPath").value.trim()) req.checklist_path = $("checklistPath").value.trim();
+    req.docs_path = $("docsPath").value.trim();
+  }
+  if (mode === "upload") {
+    const cf = $("checklistFile").files[0];
+    if (cf) req.checklist_json = JSON.parse(await readFile(cf));
+    req.documents = [];
+    for (const f of $("docFiles").files) req.documents.push({ name: f.name, text: await readFile(f) });
+  }
+  return req;
+}
+
+function card(title, value, cls = "") {
+  return `<div class="col-6 col-md-3"><div class="card"><div class="card-body py-2">
+    <div class="text-muted small">${esc(title)}</div><div class="fs-4 ${cls}">${value}</div></div></div></div>`;
+}
+
+function render(run) {
+  $("result").classList.remove("hidden");
+  const c = run.counts;
+  $("summary").innerHTML =
+    card("Puntaje global", run.overall_pct.toFixed(1) + "%") +
+    card("Veredicto", esc(VERDICT[run.verdict] || run.verdict)) +
+    card("Pass / Partial / Fail", `<span class="st-pass">${c.pass}</span> / <span class="st-partial">${c.partial}</span> / <span class="st-fail">${c.fail}</span>`) +
+    card("Brechas criticas", run.critical_gaps.length ? esc(run.critical_gaps.join(", ")) : "ninguna", run.critical_gaps.length ? "st-fail" : "st-pass");
+
+  const docs = run.documents;
+  let html = "<thead><tr><th>ID</th><th>Requisito</th><th>Estado</th><th>Pts</th>" +
+    docs.map((d) => `<th class="cell">${esc(d)}</th>`).join("") + "</tr></thead><tbody>";
+  run.requirements.forEach((r, i) => {
+    const counts = {};
+    r.evidence.filter((e) => !e.negated).forEach((e) => { counts[e.doc] = (counts[e.doc] || 0) + 1; });
+    html += `<tr class="req-row" data-i="${i}"><td>${esc(r.id)}</td>
+      <td>${esc(r.title)}${r.critical ? ' <span class="badge text-bg-danger">critico</span>' : ""}</td>
+      <td class="st-${r.status}">${r.status.toUpperCase()}</td><td>${Math.round(r.score * 100)}%</td>` +
+      docs.map((d) => counts[d] ? `<td class="cell hit">${counts[d]}</td>` : `<td class="cell none">-</td>`).join("") + "</tr>";
+    html += `<tr class="hidden" id="d${i}"><td colspan="${4 + docs.length}">${detail(r)}</td></tr>`;
+  });
+  $("matrix").innerHTML = html + "</tbody>";
+  document.querySelectorAll("tr.req-row").forEach((row) =>
+    row.addEventListener("click", () => $("d" + row.dataset.i).classList.toggle("hidden")));
+}
+
+function detail(r) {
+  let h = "";
+  if (!r.evidence.length) h += "<p class='mb-1'><em>Sin evidencia encontrada.</em></p>";
+  r.evidence.forEach((e) => {
+    h += `<div class="quote ${e.negated ? "neg" : ""}"><code>${esc(e.citation)}</code>${e.negated ? " (negado)" : ""}<br>${esc(e.quote)}</div>`;
+  });
+  if (r.missing_must_have.length) h += `<div class="small"><b>Frases obligatorias ausentes:</b> ${esc(r.missing_must_have.join(", "))}</div>`;
+  if (r.negated_must_have.length) h += `<div class="small"><b>Solo negadas:</b> ${esc(r.negated_must_have.join(", "))}</div>`;
+  if (r.missing_keywords.length) h += `<div class="small"><b>Keywords ausentes:</b> ${esc(r.missing_keywords.join(", "))}</div>`;
+  return h;
+}
+
+async function loadHistory() {
+  const rows = await api("/api/history");
+  let h = "<thead><tr><th>#</th><th>Fecha (UTC)</th><th>Etiqueta</th><th>Pts</th><th>P/Pa/F</th><th>Criticas</th><th></th></tr></thead><tbody>";
+  rows.forEach((r) => {
+    h += `<tr><td>${r.id}</td><td>${esc(r.created_at.slice(0, 19))}</td><td>${esc(r.label)}</td>
+      <td>${r.overall_pct.toFixed(1)}%</td><td>${r.passed}/${r.partial}/${r.failed}</td><td>${r.critical_gaps}</td>
+      <td><a href="#" data-id="${r.id}" class="open">ver</a> &middot; <a href="/api/history/${r.id}/html" target="_blank">html</a></td></tr>`;
+  });
+  $("history").innerHTML = h + "</tbody>";
+  document.querySelectorAll("a.open").forEach((a) => a.addEventListener("click", async (ev) => {
+    ev.preventDefault();
+    render(await api("/api/history/" + a.dataset.id));
+  }));
+}
+
+async function guarded(fn) {
+  $("msg").textContent = "";
+  try { await fn(); } catch (err) { $("msg").textContent = err.message; }
+}
+
+$("mode").addEventListener("change", () => {
+  $("box-paths").style.display = $("mode").value === "paths" ? "" : "none";
+  $("box-upload").style.display = $("mode").value === "upload" ? "" : "none";
+});
+
+$("run").addEventListener("click", () => guarded(async () => {
+  render(await api("/api/check", await buildRequest()));
+  await loadHistory();
+}));
+
+$("compare").addEventListener("click", () => guarded(async () => {
+  await api("/api/check", { mode: "samples_ok", label: "web:compare-ok" });
+  render(await api("/api/check", { mode: "samples_gap", label: "web:compare-gap" }));
+  await loadHistory();
+}));
+
+$("refresh").addEventListener("click", () => guarded(loadHistory));
+
+api("/api/samples").then((s) => {
+  $("checklistPath").value = s.checklist;
+  $("docsPath").value = s.docs_ok;
+}).catch(() => {});
+guarded(loadHistory);
+</script>
+</body>
+</html>

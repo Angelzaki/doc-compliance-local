@@ -1,0 +1,13 @@
+OPS NOTES (DRAFT)
+
+Logs are written to each server and engineers read them when something breaks.
+Monitoring is done by looking at the dashboard during working hours.
+When something goes wrong the team talks in chat until it is fixed.
+Backups run when someone remembers and have never been used for a restore.
+Vulnerability scans are planned for next year.
+Remediation is tracked in a spreadsheet.
+Software updates are installed when users complain.
+Developers push changes straight to production and fix problems afterwards.
+New suppliers are chosen by price.
+Software licenses are tracked in a spreadsheet by the office manager.
+Staff learn about security from the team lead when time allows.
