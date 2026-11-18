@@ -1,0 +1,15 @@
+services:
+  doc-compliance:
+    build: .
+    image: doc-compliance-local:latest
+    container_name: doc-compliance-local
+    ports:
+      - "8022:8022"
+    environment:
+      DOC_COMPLIANCE_DB: /app/results/history.db
+    volumes:
+      - compliance-results:/app/results
+    restart: unless-stopped
+
+volumes:
+  compliance-results:

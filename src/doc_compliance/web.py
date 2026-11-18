@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
+from doc_compliance import __version__
 from doc_compliance.checklist import (
     ChecklistError,
     default_checklist_path,
@@ -21,7 +22,7 @@ from doc_compliance.store import get_run, list_runs, save_run
 
 TEMPLATE = Path(__file__).parent / "templates" / "index.html"
 
-app = FastAPI(title="doc-compliance-local", version="0.1.0")
+app = FastAPI(title="doc-compliance-local", version=__version__)
 
 
 class UploadedDoc(BaseModel):
@@ -68,6 +69,11 @@ def execute_check(req: CheckRequest) -> dict[str, Any]:
 @app.get("/", response_class=HTMLResponse)
 def index() -> str:
     return TEMPLATE.read_text(encoding="utf-8")
+
+
+@app.get("/api/health")
+def api_health() -> dict[str, str]:
+    return {"status": "ok", "version": __version__}
 
 
 @app.get("/api/samples")

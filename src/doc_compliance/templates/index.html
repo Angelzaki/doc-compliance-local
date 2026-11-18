@@ -3,105 +3,328 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>doc-compliance-local</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Consola de cumplimiento · doc-compliance-local</title>
   <style>
-    body { background: #f6f7f9; font-family: system-ui, sans-serif; }
-    .card { border-radius: .6rem; }
-    .st-pass { color: #198754; font-weight: 600; }
-    .st-partial { color: #b58100; font-weight: 600; }
-    .st-fail { color: #dc3545; font-weight: 600; }
-    .quote { border-left: 3px solid #adb5bd; padding-left: .6rem; margin-bottom: .5rem; font-size: .88rem; }
-    .quote.neg { border-color: #dc3545; color: #842029; }
-    .cell { text-align: center; min-width: 5rem; }
-    .cell.hit { background: #d1e7dd; }
-    .cell.none { background: #f8d7da; }
+    :root {
+      --slate-950: #0b1220;
+      --slate-900: #0f172a;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-500: #64748b;
+      --slate-300: #cbd5e1;
+      --slate-200: #e2e8f0;
+      --slate-100: #f1f5f9;
+      --slate-50: #f8fafc;
+      --blue-700: #1d4ed8;
+      --blue-600: #2563eb;
+      --blue-100: #dbeafe;
+      --green-700: #15803d;
+      --green-100: #dcfce7;
+      --amber-700: #b45309;
+      --amber-100: #fef3c7;
+      --red-700: #b91c1c;
+      --red-100: #fee2e2;
+      --radius: 6px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 14px/1.5 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+      color: var(--slate-900);
+      background: var(--slate-100);
+    }
+    .shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+    aside {
+      background: var(--slate-900);
+      color: var(--slate-300);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+    .brand { padding: 20px 20px 16px; border-bottom: 1px solid var(--slate-800); }
+    .brand b { display: block; color: #fff; font-size: 15px; letter-spacing: .2px; }
+    .brand span { font-size: 12px; color: var(--slate-500); }
+    nav { padding: 12px 10px; flex: 1; }
+    nav a {
+      display: block;
+      padding: 9px 12px;
+      margin-bottom: 2px;
+      border-radius: var(--radius);
+      color: var(--slate-300);
+      text-decoration: none;
+      border-left: 3px solid transparent;
+    }
+    nav a:hover { background: var(--slate-800); color: #fff; }
+    nav a.active { background: var(--slate-800); color: #fff; border-left-color: var(--blue-600); }
+    .side-foot { padding: 14px 20px; font-size: 12px; color: var(--slate-500); border-top: 1px solid var(--slate-800); }
+
+    main { padding: 0 28px 28px; min-width: 0; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--slate-200);
+      margin-bottom: 20px;
+    }
+    .topbar h1 { margin: 0; font-size: 20px; font-weight: 600; }
+    .topbar small { color: var(--slate-500); }
+    .pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .pill.compliant, .pill.pass { background: var(--green-100); color: var(--green-700); }
+    .pill.needs_work, .pill.partial { background: var(--amber-100); color: var(--amber-700); }
+    .pill.non_compliant, .pill.fail { background: var(--red-100); color: var(--red-700); }
+    .pill.idle { background: var(--slate-200); color: var(--slate-700); }
+    .tag-crit { background: var(--slate-900); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 11px; margin-left: 6px; }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+    .kpi {
+      background: #fff;
+      border: 1px solid var(--slate-200);
+      border-top: 3px solid var(--blue-600);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .kpi.danger { border-top-color: var(--red-700); }
+    .kpi.ok { border-top-color: var(--green-700); }
+    .kpi .label { font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--slate-500); }
+    .kpi .value { font-size: 28px; font-weight: 600; line-height: 1.2; margin-top: 4px; }
+    .kpi .hint { font-size: 12px; color: var(--slate-500); margin-top: 2px; min-height: 18px; }
+
+    .panel { background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius); margin-bottom: 20px; }
+    .panel > header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--slate-200);
+      font-weight: 600;
+    }
+    .panel .body { padding: 16px; }
+    .grid-2 { display: grid; grid-template-columns: 3fr 2fr; gap: 20px; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--slate-500);
+      background: var(--slate-50);
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--slate-200);
+      font-weight: 600;
+    }
+    td { padding: 8px 12px; border-bottom: 1px solid var(--slate-100); vertical-align: middle; }
     tr.req-row { cursor: pointer; }
-    code { font-size: .8rem; }
-    footer { font-size: .8rem; color: #6c757d; }
-    table { background: #fff; }
-    .hidden { display: none; }
+    tr.req-row:hover td { background: var(--slate-50); }
+    td.cell, th.cell { text-align: center; }
+    td.hit { background: var(--blue-100); color: var(--blue-700); font-weight: 600; }
+    td.none { color: var(--slate-300); }
+    tr.detail td { background: var(--slate-50); }
+    .empty { color: var(--slate-500); padding: 20px 16px; }
+
+    .quote {
+      border-left: 3px solid var(--slate-300);
+      padding: 2px 0 2px 10px;
+      margin: 0 0 8px;
+      font-size: 13px;
+    }
+    .quote.neg { border-left-color: var(--red-700); color: var(--red-700); }
+    code { font: 12px Consolas, "Cascadia Mono", monospace; background: var(--slate-100); padding: 1px 5px; border-radius: 3px; color: var(--slate-700); }
+    .meta { font-size: 12px; color: var(--slate-700); margin-top: 4px; }
+
+    .bar { height: 8px; background: var(--slate-200); border-radius: 4px; overflow: hidden; }
+    .bar > i { display: block; height: 100%; background: var(--blue-600); }
+    .bar.low > i { background: var(--red-700); }
+    .bar.mid > i { background: var(--amber-700); }
+    .bar.high > i { background: var(--green-700); }
+    .cat { margin-bottom: 14px; }
+    .cat .row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
+
+    .activity { list-style: none; margin: 0; padding: 0; }
+    .activity li { padding: 10px 16px; border-bottom: 1px solid var(--slate-100); display: flex; justify-content: space-between; gap: 10px; }
+    .activity li:last-child { border-bottom: 0; }
+    .activity .when { font-size: 12px; color: var(--slate-500); }
+
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--slate-700); margin-bottom: 4px; }
+    select, input[type=text], input[type=file] {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid var(--slate-300);
+      border-radius: var(--radius);
+      font: inherit;
+      background: #fff;
+      color: var(--slate-900);
+    }
+    select:focus, input:focus, button:focus-visible { outline: 2px solid var(--blue-600); outline-offset: 1px; }
+    .form-grid { display: grid; grid-template-columns: 240px 1fr; gap: 14px; }
+    .form-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .actions { display: flex; gap: 10px; align-items: center; margin-top: 16px; }
+    button {
+      font: inherit;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--slate-300);
+      background: #fff;
+      color: var(--slate-800);
+      cursor: pointer;
+    }
+    button:hover { background: var(--slate-100); }
+    button.primary { background: var(--blue-600); border-color: var(--blue-600); color: #fff; }
+    button.primary:hover { background: var(--blue-700); }
+    button.sm { padding: 4px 10px; font-size: 12px; }
+    button:disabled { opacity: .6; cursor: wait; }
+    #msg { color: var(--red-700); }
+    a { color: var(--blue-600); }
+    footer { text-align: center; font-size: 12px; color: var(--slate-500); margin-top: 8px; }
+
+    @media (max-width: 960px) {
+      .shell { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; }
+      nav { display: flex; flex-wrap: wrap; gap: 4px; }
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .grid-2, .form-grid, .form-pair { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-baseline mb-3">
-    <h1 class="h3 mb-0">doc-compliance-local</h1>
-    <span class="text-muted">checklist &rarr; evidencia citada &rarr; brechas</span>
-  </div>
+<div class="shell">
+  <aside>
+    <div class="brand">
+      <b>doc-compliance-local</b>
+      <span>Operaciones documentales</span>
+    </div>
+    <nav id="nav">
+      <a href="#panel" data-view="panel" class="active">Panel</a>
+      <a href="#evaluar" data-view="evaluar">Evaluar documentos</a>
+      <a href="#requisitos" data-view="requisitos">Requisitos y evidencia</a>
+      <a href="#historial" data-view="historial">Historial</a>
+    </nav>
+    <div class="side-foot">Angel Salazar Lima<br>CIP 404730</div>
+  </aside>
 
-  <div class="card mb-4">
-    <div class="card-body">
-      <div class="row g-3">
-        <div class="col-md-3">
-          <label class="form-label" for="mode">Fuente</label>
-          <select id="mode" class="form-select">
-            <option value="samples_ok">Samples: docs_ok</option>
-            <option value="samples_gap">Samples: docs_gap</option>
-            <option value="paths">Rutas locales</option>
-            <option value="upload">Subir archivos</option>
-          </select>
+  <main>
+    <div class="topbar">
+      <div>
+        <h1>Consola de cumplimiento</h1>
+        <small id="subtitle">checklist &rarr; evidencia citada &rarr; puntaje &rarr; brechas</small>
+      </div>
+      <span id="verdict" class="pill idle">Sin evaluaciones</span>
+    </div>
+
+    <section class="view active" id="view-panel">
+      <div class="kpis">
+        <div class="kpi" id="kpi-score"><div class="label">Puntaje global</div><div class="value" id="k-score">&ndash;</div><div class="hint" id="k-score-h">Sin datos</div></div>
+        <div class="kpi" id="kpi-gaps"><div class="label">Brechas críticas</div><div class="value" id="k-gaps">&ndash;</div><div class="hint" id="k-gaps-h">Sin datos</div></div>
+        <div class="kpi"><div class="label">Documentos procesados</div><div class="value" id="k-docs">0</div><div class="hint" id="k-docs-h">Acumulado del historial</div></div>
+        <div class="kpi"><div class="label">Actividad reciente</div><div class="value" id="k-runs">0</div><div class="hint" id="k-runs-h">Sin corridas</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <header>Estado por requisito (última evaluación)</header>
+          <div id="gap-list" class="empty">Ejecuta una evaluación para ver el detalle.</div>
         </div>
-        <div class="col-md-9" id="box-paths" style="display:none">
-          <div class="row g-2">
-            <div class="col-md-6">
-              <label class="form-label" for="checklistPath">Checklist (JSON)</label>
-              <input id="checklistPath" class="form-control" placeholder="ruta al checklist">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label" for="docsPath">Documentos (carpeta o archivo)</label>
-              <input id="docsPath" class="form-control" placeholder="ruta a .txt / .md">
-            </div>
+        <div>
+          <div class="panel">
+            <header>Puntaje por categoría</header>
+            <div class="body" id="categories"><span class="empty" style="padding:0">Sin datos</span></div>
+          </div>
+          <div class="panel">
+            <header>Actividad reciente</header>
+            <ul class="activity" id="activity"><li class="empty">Sin corridas registradas</li></ul>
           </div>
         </div>
-        <div class="col-md-9" id="box-upload" style="display:none">
-          <div class="row g-2">
-            <div class="col-md-6">
-              <label class="form-label" for="checklistFile">Checklist (JSON, opcional)</label>
-              <input id="checklistFile" type="file" class="form-control" accept=".json">
+      </div>
+    </section>
+
+    <section class="view" id="view-evaluar">
+      <div class="panel">
+        <header>Nueva evaluación</header>
+        <div class="body">
+          <div class="form-grid">
+            <div>
+              <label for="mode">Fuente</label>
+              <select id="mode">
+                <option value="samples_ok">Muestras: docs_ok</option>
+                <option value="samples_gap">Muestras: docs_gap</option>
+                <option value="paths">Rutas locales</option>
+                <option value="upload">Subir archivos</option>
+              </select>
             </div>
-            <div class="col-md-6">
-              <label class="form-label" for="docFiles">Documentos (.txt / .md)</label>
-              <input id="docFiles" type="file" class="form-control" accept=".txt,.md" multiple>
+            <div id="box-paths" style="display:none">
+              <div class="form-pair">
+                <div>
+                  <label for="checklistPath">Checklist (JSON)</label>
+                  <input id="checklistPath" type="text" placeholder="ruta al checklist">
+                </div>
+                <div>
+                  <label for="docsPath">Documentos (carpeta o archivo)</label>
+                  <input id="docsPath" type="text" placeholder="ruta a .txt / .md">
+                </div>
+              </div>
             </div>
+            <div id="box-upload" style="display:none">
+              <div class="form-pair">
+                <div>
+                  <label for="checklistFile">Checklist (JSON, opcional)</label>
+                  <input id="checklistFile" type="file" accept=".json">
+                </div>
+                <div>
+                  <label for="docFiles">Documentos (.txt / .md)</label>
+                  <input id="docFiles" type="file" accept=".txt,.md" multiple>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            <button id="run" class="primary">Evaluar</button>
+            <button id="compare">Comparar ok vs gap</button>
+            <span id="msg" role="alert"></span>
           </div>
         </div>
       </div>
-      <div class="mt-3 d-flex gap-2 align-items-center">
-        <button id="run" class="btn btn-primary">Evaluar</button>
-        <button id="compare" class="btn btn-outline-secondary">Comparar ok vs gap</button>
-        <span id="msg" class="text-danger"></span>
+    </section>
+
+    <section class="view" id="view-requisitos">
+      <div class="panel">
+        <header>Matriz requisito &times; documento <small style="font-weight:400;color:var(--slate-500)">clic en una fila para ver evidencia</small></header>
+        <div id="matrix-wrap" style="overflow-x:auto">
+          <div class="empty" id="matrix-empty">Ejecuta una evaluación para ver la matriz.</div>
+          <table id="matrix" style="display:none"></table>
+        </div>
       </div>
-    </div>
-  </div>
+    </section>
 
-  <div id="result" class="hidden">
-    <div class="row g-3 mb-3" id="summary"></div>
-    <div class="card mb-4">
-      <div class="card-header">Matriz requisito &times; documento (clic para ver evidencia)</div>
-      <div class="table-responsive">
-        <table class="table table-sm table-bordered mb-0 align-middle" id="matrix"></table>
+    <section class="view" id="view-historial">
+      <div class="panel">
+        <header>Historial de corridas <button id="refresh" class="sm">Actualizar</button></header>
+        <div style="overflow-x:auto"><table id="history"></table></div>
       </div>
-    </div>
-  </div>
+    </section>
 
-  <div class="card mb-4">
-    <div class="card-header d-flex justify-content-between">
-      <span>Historial</span>
-      <button id="refresh" class="btn btn-sm btn-outline-secondary">Actualizar</button>
-    </div>
-    <div class="table-responsive">
-      <table class="table table-sm mb-0" id="history"></table>
-    </div>
-  </div>
-
-  <footer class="text-center">Hecho en Lima &middot; Angel Salazar &middot; CIP 404730</footer>
+    <footer>Hecho en Lima &middot; Angel Salazar Lima &middot; CIP 404730</footer>
+  </main>
 </div>
 
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const VERDICT = { compliant: "Cumple", needs_work: "Requiere trabajo", non_compliant: "No cumple" };
+const STATUS = { pass: "Cumple", partial: "Parcial", fail: "Brecha" };
 
 async function api(path, body) {
   const res = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : undefined);
@@ -135,20 +358,62 @@ async function buildRequest() {
   return req;
 }
 
-function card(title, value, cls = "") {
-  return `<div class="col-6 col-md-3"><div class="card"><div class="card-body py-2">
-    <div class="text-muted small">${esc(title)}</div><div class="fs-4 ${cls}">${value}</div></div></div></div>`;
+function showView(name) {
+  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("active", v.id === "view-" + name));
+  document.querySelectorAll("#nav a").forEach((a) => a.classList.toggle("active", a.dataset.view === name));
 }
 
-function render(run) {
-  $("result").classList.remove("hidden");
-  const c = run.counts;
-  $("summary").innerHTML =
-    card("Puntaje global", run.overall_pct.toFixed(1) + "%") +
-    card("Veredicto", esc(VERDICT[run.verdict] || run.verdict)) +
-    card("Pass / Partial / Fail", `<span class="st-pass">${c.pass}</span> / <span class="st-partial">${c.partial}</span> / <span class="st-fail">${c.fail}</span>`) +
-    card("Brechas criticas", run.critical_gaps.length ? esc(run.critical_gaps.join(", ")) : "ninguna", run.critical_gaps.length ? "st-fail" : "st-pass");
+function barClass(pct) { return pct >= 80 ? "high" : pct >= 60 ? "mid" : "low"; }
 
+function setKpi(id, cls) {
+  const el = $(id);
+  el.classList.remove("danger", "ok");
+  if (cls) el.classList.add(cls);
+}
+
+function renderRun(run) {
+  const pct = run.overall_pct;
+  $("verdict").className = "pill " + run.verdict;
+  $("verdict").textContent = VERDICT[run.verdict] || run.verdict;
+  $("k-score").textContent = pct.toFixed(1) + "%";
+  $("k-score-h").textContent = `${run.counts.pass} cumplen · ${run.counts.partial} parciales · ${run.counts.fail} brechas`;
+  setKpi("kpi-score", pct >= 80 ? "ok" : pct < 60 ? "danger" : "");
+  const gaps = run.critical_gaps;
+  $("k-gaps").textContent = gaps.length;
+  $("k-gaps-h").textContent = gaps.length ? gaps.join(", ") : "Ninguna brecha crítica";
+  setKpi("kpi-gaps", gaps.length ? "danger" : "ok");
+  $("subtitle").textContent = `${run.checklist.name} v${run.checklist.version} · ${run.documents.length} documento(s)`;
+
+  renderGapList(run);
+  renderCategories(run);
+  renderMatrix(run);
+}
+
+function renderGapList(run) {
+  const rows = run.requirements.filter((r) => r.status !== "pass");
+  if (!rows.length) { $("gap-list").className = "empty"; $("gap-list").textContent = "Todos los requisitos cumplen."; return; }
+  $("gap-list").className = "";
+  $("gap-list").innerHTML = "<table><thead><tr><th>ID</th><th>Requisito</th><th>Estado</th><th>Pts</th></tr></thead><tbody>" +
+    rows.map((r) => `<tr><td>${esc(r.id)}</td><td>${esc(r.title)}${r.critical ? '<span class="tag-crit">crítico</span>' : ""}</td>
+      <td><span class="pill ${r.status}">${STATUS[r.status]}</span></td><td>${Math.round(r.score * 100)}%</td></tr>`).join("") + "</tbody></table>";
+}
+
+function renderCategories(run) {
+  const acc = {};
+  run.requirements.forEach((r) => {
+    const k = r.category || "General";
+    acc[k] = acc[k] || { w: 0, s: 0 };
+    acc[k].w += r.weight;
+    acc[k].s += r.weight * r.score;
+  });
+  $("categories").innerHTML = Object.entries(acc).map(([k, v]) => {
+    const p = (100 * v.s) / v.w;
+    return `<div class="cat"><div class="row"><span>${esc(k)}</span><b>${p.toFixed(0)}%</b></div>
+      <div class="bar ${barClass(p)}"><i style="width:${p.toFixed(0)}%"></i></div></div>`;
+  }).join("");
+}
+
+function renderMatrix(run) {
   const docs = run.documents;
   let html = "<thead><tr><th>ID</th><th>Requisito</th><th>Estado</th><th>Pts</th>" +
     docs.map((d) => `<th class="cell">${esc(d)}</th>`).join("") + "</tr></thead><tbody>";
@@ -156,71 +421,112 @@ function render(run) {
     const counts = {};
     r.evidence.filter((e) => !e.negated).forEach((e) => { counts[e.doc] = (counts[e.doc] || 0) + 1; });
     html += `<tr class="req-row" data-i="${i}"><td>${esc(r.id)}</td>
-      <td>${esc(r.title)}${r.critical ? ' <span class="badge text-bg-danger">critico</span>' : ""}</td>
-      <td class="st-${r.status}">${r.status.toUpperCase()}</td><td>${Math.round(r.score * 100)}%</td>` +
-      docs.map((d) => counts[d] ? `<td class="cell hit">${counts[d]}</td>` : `<td class="cell none">-</td>`).join("") + "</tr>";
-    html += `<tr class="hidden" id="d${i}"><td colspan="${4 + docs.length}">${detail(r)}</td></tr>`;
+      <td>${esc(r.title)}${r.critical ? '<span class="tag-crit">crítico</span>' : ""}</td>
+      <td><span class="pill ${r.status}">${STATUS[r.status]}</span></td><td>${Math.round(r.score * 100)}%</td>` +
+      docs.map((d) => counts[d] ? `<td class="cell hit">${counts[d]}</td>` : `<td class="cell none">&ndash;</td>`).join("") + "</tr>";
+    html += `<tr class="detail" id="d${i}" style="display:none"><td colspan="${4 + docs.length}">${detail(r)}</td></tr>`;
   });
   $("matrix").innerHTML = html + "</tbody>";
+  $("matrix").style.display = "";
+  $("matrix-empty").style.display = "none";
   document.querySelectorAll("tr.req-row").forEach((row) =>
-    row.addEventListener("click", () => $("d" + row.dataset.i).classList.toggle("hidden")));
+    row.addEventListener("click", () => {
+      const d = $("d" + row.dataset.i);
+      d.style.display = d.style.display === "none" ? "" : "none";
+    }));
 }
 
 function detail(r) {
   let h = "";
-  if (!r.evidence.length) h += "<p class='mb-1'><em>Sin evidencia encontrada.</em></p>";
+  if (!r.evidence.length) h += "<p class='meta'><em>Sin evidencia encontrada.</em></p>";
   r.evidence.forEach((e) => {
     h += `<div class="quote ${e.negated ? "neg" : ""}"><code>${esc(e.citation)}</code>${e.negated ? " (negado)" : ""}<br>${esc(e.quote)}</div>`;
   });
-  if (r.missing_must_have.length) h += `<div class="small"><b>Frases obligatorias ausentes:</b> ${esc(r.missing_must_have.join(", "))}</div>`;
-  if (r.negated_must_have.length) h += `<div class="small"><b>Solo negadas:</b> ${esc(r.negated_must_have.join(", "))}</div>`;
-  if (r.missing_keywords.length) h += `<div class="small"><b>Keywords ausentes:</b> ${esc(r.missing_keywords.join(", "))}</div>`;
+  if (r.missing_must_have.length) h += `<div class="meta"><b>Frases obligatorias ausentes:</b> ${esc(r.missing_must_have.join(", "))}</div>`;
+  if (r.negated_must_have.length) h += `<div class="meta"><b>Solo negadas:</b> ${esc(r.negated_must_have.join(", "))}</div>`;
+  if (r.missing_keywords.length) h += `<div class="meta"><b>Keywords ausentes:</b> ${esc(r.missing_keywords.join(", "))}</div>`;
   return h;
 }
 
-async function loadHistory() {
-  const rows = await api("/api/history");
-  let h = "<thead><tr><th>#</th><th>Fecha (UTC)</th><th>Etiqueta</th><th>Pts</th><th>P/Pa/F</th><th>Criticas</th><th></th></tr></thead><tbody>";
-  rows.forEach((r) => {
-    h += `<tr><td>${r.id}</td><td>${esc(r.created_at.slice(0, 19))}</td><td>${esc(r.label)}</td>
-      <td>${r.overall_pct.toFixed(1)}%</td><td>${r.passed}/${r.partial}/${r.failed}</td><td>${r.critical_gaps}</td>
-      <td><a href="#" data-id="${r.id}" class="open">ver</a> &middot; <a href="/api/history/${r.id}/html" target="_blank">html</a></td></tr>`;
-  });
-  $("history").innerHTML = h + "</tbody>";
+function ago(iso) {
+  const secs = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+  if (secs < 60) return "hace instantes";
+  if (secs < 3600) return `hace ${Math.floor(secs / 60)} min`;
+  if (secs < 86400) return `hace ${Math.floor(secs / 3600)} h`;
+  return `hace ${Math.floor(secs / 86400)} d`;
+}
+
+function renderHistory(rows) {
+  const docs = rows.reduce((n, r) => n + r.documents.length, 0);
+  $("k-docs").textContent = docs;
+  $("k-docs-h").textContent = `En las últimas ${rows.length} corridas`;
+  $("k-runs").textContent = rows.length;
+  $("k-runs-h").textContent = rows.length ? `Última: ${ago(rows[0].created_at)}` : "Sin corridas";
+
+  $("activity").innerHTML = rows.length ? rows.slice(0, 6).map((r) =>
+    `<li><div><span class="pill ${r.verdict}">${r.overall_pct.toFixed(1)}%</span> ${esc(r.label || "corrida #" + r.id)}
+      <div class="when">${r.critical_gaps} brecha(s) crítica(s) · ${r.documents.length} doc(s)</div></div>
+      <span class="when">${ago(r.created_at)}</span></li>`).join("")
+    : '<li class="empty">Sin corridas registradas</li>';
+
+  $("history").innerHTML = "<thead><tr><th>#</th><th>Fecha (UTC)</th><th>Etiqueta</th><th>Puntaje</th><th>Cumple/Parcial/Brecha</th><th>Críticas</th><th></th></tr></thead><tbody>" +
+    rows.map((r) => `<tr><td>${r.id}</td><td>${esc(r.created_at.slice(0, 19).replace("T", " "))}</td><td>${esc(r.label)}</td>
+      <td><span class="pill ${r.verdict}">${r.overall_pct.toFixed(1)}%</span></td><td>${r.passed}/${r.partial}/${r.failed}</td><td>${r.critical_gaps}</td>
+      <td><a href="#" data-id="${r.id}" class="open">ver</a> &middot; <a href="/api/history/${r.id}/html" target="_blank" rel="noopener">html</a></td></tr>`).join("") + "</tbody>";
   document.querySelectorAll("a.open").forEach((a) => a.addEventListener("click", async (ev) => {
     ev.preventDefault();
-    render(await api("/api/history/" + a.dataset.id));
+    renderRun(await api("/api/history/" + a.dataset.id));
+    showView("panel");
   }));
 }
 
-async function guarded(fn) {
-  $("msg").textContent = "";
-  try { await fn(); } catch (err) { $("msg").textContent = err.message; }
+async function loadHistory(showLatest) {
+  const rows = await api("/api/history");
+  renderHistory(rows);
+  if (showLatest && rows.length) renderRun(await api("/api/history/" + rows[0].id));
 }
+
+async function guarded(btn, fn) {
+  $("msg").textContent = "";
+  if (btn) btn.disabled = true;
+  try { await fn(); } catch (err) { $("msg").textContent = err.message; }
+  if (btn) btn.disabled = false;
+}
+
+document.querySelectorAll("#nav a").forEach((a) => a.addEventListener("click", (ev) => {
+  ev.preventDefault();
+  showView(a.dataset.view);
+  history.replaceState(null, "", "#" + a.dataset.view);
+}));
 
 $("mode").addEventListener("change", () => {
   $("box-paths").style.display = $("mode").value === "paths" ? "" : "none";
   $("box-upload").style.display = $("mode").value === "upload" ? "" : "none";
 });
 
-$("run").addEventListener("click", () => guarded(async () => {
-  render(await api("/api/check", await buildRequest()));
-  await loadHistory();
+$("run").addEventListener("click", () => guarded($("run"), async () => {
+  renderRun(await api("/api/check", await buildRequest()));
+  await loadHistory(false);
+  showView("panel");
 }));
 
-$("compare").addEventListener("click", () => guarded(async () => {
+$("compare").addEventListener("click", () => guarded($("compare"), async () => {
   await api("/api/check", { mode: "samples_ok", label: "web:compare-ok" });
-  render(await api("/api/check", { mode: "samples_gap", label: "web:compare-gap" }));
-  await loadHistory();
+  renderRun(await api("/api/check", { mode: "samples_gap", label: "web:compare-gap" }));
+  await loadHistory(false);
+  showView("panel");
 }));
 
-$("refresh").addEventListener("click", () => guarded(loadHistory));
+$("refresh").addEventListener("click", () => guarded(null, () => loadHistory(false)));
 
 api("/api/samples").then((s) => {
   $("checklistPath").value = s.checklist;
   $("docsPath").value = s.docs_ok;
 }).catch(() => {});
-guarded(loadHistory);
+
+const initial = location.hash.slice(1);
+if (["panel", "evaluar", "requisitos", "historial"].includes(initial)) showView(initial);
+guarded(null, () => loadHistory(true));
 </script>
 </body>
 </html>

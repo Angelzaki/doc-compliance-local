@@ -212,3 +212,30 @@ def test_web_execute_check_modes(tmp_path, monkeypatch):
     assert upload["documents"] == ["u.txt"]
     assert (tmp_path / "results" / "compliance_report.md").exists()
     assert len(list_runs(10)) == 3
+
+
+def test_experiment_reference_scores(checklist):
+    ok = run_check(checklist, load_documents(samples_dir() / "docs_ok"))
+    gap = run_check(checklist, load_documents(samples_dir() / "docs_gap"))
+    assert round(ok.overall_pct, 1) == 98.9
+    assert ok.critical_gaps == []
+    assert round(gap.overall_pct, 1) == 11.7
+    assert gap.critical_gaps == ["SEC-01", "SEC-02", "SEC-04", "SEC-05", "SEC-07", "SEC-08"]
+    assert gap.verdict == "non_compliant"
+
+
+def test_web_health_and_console(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from doc_compliance.web import app
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("DOC_COMPLIANCE_DB", str(tmp_path / "web.db"))
+    client = TestClient(app)
+    assert client.get("/api/health").json()["status"] == "ok"
+    page = client.get("/")
+    assert page.status_code == 200 and "Consola de cumplimiento" in page.text
+    res = client.post("/api/check", json={"mode": "samples_gap"})
+    assert res.status_code == 200 and res.json()["critical_gaps"]
+    assert client.post("/api/check", json={"mode": "paths"}).status_code == 400
+    assert len(client.get("/api/history").json()) == 1
